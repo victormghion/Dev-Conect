@@ -32,7 +32,7 @@ const Home: React.FC = () => {
       const response = await postService.getPosts(pageNum, 10);
       
       if (response.success) {
-        const newPosts = response.posts || [];
+        const newPosts = response.data || [];
         setPosts(prev => append ? [...prev, ...newPosts] : newPosts);
         setHasMore(pageNum < (response.pagination?.pages || 1));
       }

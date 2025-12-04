@@ -7,13 +7,11 @@ import {
   Typography,
   Box,
   Alert,
-  Chip,
   IconButton,
-  Grid,
   Card,
   CardMedia,
 } from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon, CloudUpload } from '@mui/icons-material';
+import { Delete as DeleteIcon, CloudUpload } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { postService } from '../../services/postService';
 
@@ -148,28 +146,24 @@ const CreatePost: React.FC = () => {
             placeholder="Conte mais detalhes sobre o desenvolvimento, desafios enfrentados, tecnologias utilizadas..."
           />
 
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Repositório GitHub"
-                name="githubRepo"
-                value={formData.githubRepo}
-                onChange={handleChange}
-                placeholder="https://github.com/usuario/projeto"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Demo Online"
-                name="liveDemo"
-                value={formData.liveDemo}
-                onChange={handleChange}
-                placeholder="https://meu-projeto.vercel.app"
-              />
-            </Grid>
-          </Grid>
+          <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+            <TextField
+              fullWidth
+              label="Repositório GitHub"
+              name="githubRepo"
+              value={formData.githubRepo}
+              onChange={handleChange}
+              placeholder="https://github.com/usuario/projeto"
+            />
+            <TextField
+              fullWidth
+              label="Demo Online"
+              name="liveDemo"
+              value={formData.liveDemo}
+              onChange={handleChange}
+              placeholder="https://meu-projeto.vercel.app"
+            />
+          </Box>
 
           <TextField
             fullWidth
@@ -216,9 +210,9 @@ const CreatePost: React.FC = () => {
             </Button>
 
             {imagePreviews.length > 0 && (
-              <Grid container spacing={2}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                 {imagePreviews.map((preview, index) => (
-                  <Grid item xs={12} sm={6} md={4} key={index}>
+                  <Box key={index} sx={{ width: { xs: '100%', sm: '48%', md: '30%' } }}>
                     <Card>
                       <CardMedia
                         component="img"
@@ -236,9 +230,9 @@ const CreatePost: React.FC = () => {
                         </IconButton>
                       </Box>
                     </Card>
-                  </Grid>
+                  </Box>
                 ))}
-              </Grid>
+              </Box>
             )}
           </Box>
 

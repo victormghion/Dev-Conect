@@ -66,6 +66,7 @@ export interface ApiResponse<T> {
 export interface PaginationResponse<T> {
   success: boolean;
   data: T[];
+  posts?: T[]; // Para compatibilidade com backend
   pagination: {
     page: number;
     limit: number;

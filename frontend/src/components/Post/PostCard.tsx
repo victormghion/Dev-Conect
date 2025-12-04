@@ -22,10 +22,8 @@ import {
   Share,
   GitHub,
   Launch,
-  ExpandMore,
-  ExpandLess,
 } from '@mui/icons-material';
-import { Post, Comment } from '../../types';
+import { Post } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { postService } from '../../services/postService';
 import { formatDistanceToNow } from 'date-fns';
