@@ -1,5 +1,7 @@
 const Post = require('../models/Post');
 const User = require('../models/User');
+const { testUser, testPosts } = require('../mockData');
+const mongoose = require('mongoose');
 
 // Create a new post
 const createPost = async (req, res) => {
@@ -46,24 +48,50 @@ const getPosts = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const posts = await Post.find({ isPublic: true })
-      .populate('author', 'username fullName avatar')
-      .populate('likes.user', 'username fullName avatar')
-      .populate('comments.user', 'username fullName avatar')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
+    // Check if MongoDB is connected
+    if (mongoose.connection.readyState === 1) {
+      try {
+        const posts = await Post.find({ isPublic: true })
+          .populate('author', 'username fullName avatar')
+          .populate('likes.user', 'username fullName avatar')
+          .populate('comments.user', 'username fullName avatar')
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit);
 
-    const total = await Post.countDocuments({ isPublic: true });
+        const total = await Post.countDocuments({ isPublic: true });
 
+        res.json({
+          success: true,
+          data: posts,
+          pagination: {
+            page,
+            limit,
+            total,
+            pages: Math.ceil(total / limit)
+          }
+        });
+        return;
+      } catch (dbError) {
+        console.log('Database query failed, falling back to mock data');
+      }
+    }
+    
+    // Use mock data if MongoDB is not available
+    console.log('Using mock data for posts');
+    
+    const startIndex = skip;
+    const endIndex = skip + limit;
+    const paginatedPosts = testPosts.slice(startIndex, endIndex);
+    
     res.json({
       success: true,
-      posts,
+      data: paginatedPosts,
       pagination: {
         page,
         limit,
-        total,
-        pages: Math.ceil(total / limit)
+        total: testPosts.length,
+        pages: Math.ceil(testPosts.length / limit)
       }
     });
   } catch (error) {

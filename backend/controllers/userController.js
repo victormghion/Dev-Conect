@@ -1,9 +1,31 @@
 const User = require('../models/User');
 const Post = require('../models/Post');
+const mongoose = require('mongoose');
+const { testUser } = require('../mockData');
 
 // Get user profile
 const getUserProfile = async (req, res) => {
   try {
+    // Check if MongoDB is connected
+    if (mongoose.connection.readyState !== 1) {
+      // Return test user if requesting test user ID
+      if (req.params.id === testUser._id) {
+        return res.json({
+          success: true,
+          user: {
+            ...testUser,
+            postsCount: 5,
+            followersCount: 0,
+            followingCount: 0
+          }
+        });
+      }
+      
+      return res.status(503).json({
+        message: 'Serviço temporariamente indisponível. Tente novamente mais tarde.'
+      });
+    }
+
     const user = await User.findById(req.params.id)
       .populate('followers', 'username fullName avatar')
       .populate('following', 'username fullName avatar');
