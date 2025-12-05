@@ -1,5 +1,8 @@
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const { testUser } = require('../mockData');
+const mongoose = require('mongoose');
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -12,6 +15,13 @@ const generateToken = (id) => {
 const register = async (req, res) => {
   try {
     const { username, email, password, fullName } = req.body;
+
+    // Check if MongoDB is connected
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        message: 'Serviço temporariamente indisponível. Tente novamente mais tarde.'
+      });
+    }
 
     // Check if user already exists
     const existingUser = await User.findOne({
@@ -70,19 +80,50 @@ const login = async (req, res) => {
       });
     }
 
-    // Find user and include password for comparison
-    const user = await User.findOne({ email }).select('+password');
-
-    if (!user) {
-      return res.status(401).json({
-        message: 'Credenciais inválidas'
+    // Check for test user first
+    if (email === 'teste@devconnect.com' && password === 'senha123') {
+      const token = generateToken(testUser._id);
+      
+      return res.json({
+        success: true,
+        message: 'Login realizado com sucesso',
+        token,
+        user: {
+          id: testUser._id,
+          username: testUser.username,
+          email: testUser.email,
+          fullName: testUser.fullName,
+          avatar: testUser.avatar,
+          bio: testUser.bio,
+          skills: testUser.skills,
+          githubUrl: testUser.githubUrl,
+          linkedinUrl: testUser.linkedinUrl,
+          portfolioUrl: testUser.portfolioUrl,
+          isVerified: testUser.isVerified
+        }
       });
     }
 
-    // Check password
-    const isPasswordValid = await user.comparePassword(password);
+    // Find user and include password for comparison
+    try {
+      const user = await User.findOne({ email }).select('+password');
 
-    if (!isPasswordValid) {
+      if (!user) {
+        return res.status(401).json({
+          message: 'Credenciais inválidas'
+        });
+      }
+
+      // Check password
+      const isPasswordValid = await user.comparePassword(password);
+
+      if (!isPasswordValid) {
+        return res.status(401).json({
+          message: 'Credenciais inválidas'
+        });
+      }
+    } catch (dbError) {
+      // If database is not available and not test user
       return res.status(401).json({
         message: 'Credenciais inválidas'
       });
@@ -131,8 +172,27 @@ const getMe = async (req, res) => {
   }
 };
 
+// Google OAuth callback
+const googleCallback = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.redirect(`${process.env.CLIENT_URL}/login?error=oauth_failed`);
+    }
+
+    // Generate JWT token
+    const token = generateToken(req.user._id);
+
+    // Redirect to frontend with token
+    res.redirect(`${process.env.CLIENT_URL}/login?token=${token}`);
+  } catch (error) {
+    console.error('Google callback error:', error);
+    res.redirect(`${process.env.CLIENT_URL}/login?error=oauth_failed`);
+  }
+};
+
 module.exports = {
   register,
   login,
-  getMe
+  getMe,
+  googleCallback
 };

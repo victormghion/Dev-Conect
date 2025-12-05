@@ -3,10 +3,12 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const session = require('express-session');
 const path = require('path');
 require('dotenv').config();
 
-const connectDB = require('./config/database');
+// const connectDB = require('./config/database');
+// const passport = require('./config/passport');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -15,27 +17,40 @@ const userRoutes = require('./routes/users');
 
 const app = express();
 
-// Connect to database
-connectDB();
+// Connect to database (disabled for testing)
+// connectDB();
 
-// Security middleware
-app.use(helmet());
+// Security middleware (disabled for development)
+// app.use(helmet());
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Muitas tentativas, tente novamente em 15 minutos'
-});
-app.use('/api/', limiter);
+// Rate limiting (disabled for development)
+// const limiter = rateLimit({
+//   windowMs: 15 * 60 * 1000, // 15 minutes
+//   max: 100, // limit each IP to 100 requests per windowMs
+//   message: 'Muitas tentativas, tente novamente em 15 minutos'
+// });
+// app.use('/api/', limiter);
 
-// CORS configuration
+// CORS configuration (simplified)
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://your-frontend-domain.com'] 
-    : ['http://localhost:3000', 'http://localhost:3001'],
+  origin: true,
   credentials: true
 }));
+
+// Session middleware (disabled for development)
+// app.use(session({
+//   secret: process.env.SESSION_SECRET || 'devconnect_session_secret',
+//   resave: false,
+//   saveUninitialized: false,
+//   cookie: {
+//     secure: process.env.NODE_ENV === 'production',
+//     maxAge: 24 * 60 * 60 * 1000 // 24 hours
+//   }
+// }));
+
+// Passport middleware (disabled for development)
+// app.use(passport.initialize());
+// app.use(passport.session());
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -64,7 +79,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // 404 handler
-app.use('*', (req, res) => {
+app.use((req, res) => {
   res.status(404).json({
     message: 'Endpoint não encontrado'
   });

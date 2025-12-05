@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Paper,
@@ -8,9 +8,11 @@ import {
   Box,
   Alert,
   Link,
+  Divider,
 } from '@mui/material';
+import { Google as GoogleIcon } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useNavigate, Link as RouterLink, useLocation } from 'react-router-dom';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -19,6 +21,21 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Handle OAuth callback
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const token = urlParams.get('token');
+    const error = urlParams.get('error');
+
+    if (token) {
+      localStorage.setItem('token', token);
+      navigate('/');
+    } else if (error) {
+      setError('Erro no login com Google. Tente novamente.');
+    }
+  }, [location, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +50,10 @@ const Login: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = 'http://localhost:12000/api/auth/google';
   };
 
   return (
@@ -93,6 +114,20 @@ const Login: React.FC = () => {
             >
               {loading ? 'Entrando...' : 'Entrar'}
             </Button>
+
+            <Divider sx={{ my: 2 }}>ou</Divider>
+
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<GoogleIcon />}
+              onClick={handleGoogleLogin}
+              sx={{ mb: 2 }}
+              disabled={loading}
+            >
+              Entrar com Google
+            </Button>
+
             <Box textAlign="center">
               <Link component={RouterLink} to="/register" variant="body2">
                 Não tem uma conta? Cadastre-se
